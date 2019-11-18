@@ -27,11 +27,11 @@ asm_generate:
 	xor	edi, esi		 ; bit = bit ^ (lfsr >> 1)
 
 	mov	esi, eax
-	shr	esi, 2
+	shr	esi, 3
 	xor	edi, esi		; bit = bit ^ (lfsr >> 2)
 
 	mov	esi, eax
-	shr	esi, 7
+	shr	esi, 4
 	xor	edi, esi		 ; bit = bit ^ (lfsr >> 7)
 	and	edi, 0x1                 ; keep only lsb
 

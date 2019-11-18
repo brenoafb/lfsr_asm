@@ -13,6 +13,7 @@ uint32_t generate(uint32_t lfsr);
 uint32_t asm_generate(uint32_t lfsr);
 int test(uint32_t seed);
 int test_period(uint32_t seed);
+double chi_squared(uint32_t *frequencies);
 
 int main(void) {
 
@@ -46,12 +47,14 @@ int main(void) {
     printf("[%d,%d]: %d\n", i, i+1, categories[i]);
   }
 
+  printf("Chi Squared = %lf\n", chi_squared(categories));
+
   return 0;
 }
 
 uint32_t generate(uint32_t lfsr) {
-  /* polynomial: x^24 + x^23 + x^22 + x17 + 1 */
-  uint32_t bit = ((lfsr >> 0) ^ (lfsr >> 1) ^ (lfsr >> 2) ^ (lfsr >> 7)) & 0x1;
+  /* polynomial: x^24 + x^23 + x^21 + x^20 + 1 */
+  uint32_t bit = ((lfsr >> 0) ^ (lfsr >> 1) ^ (lfsr >> 3) ^ (lfsr >> 4)) & 0x1;
   return ((lfsr >> 1) | (bit << 23));
 }
 
@@ -82,4 +85,14 @@ int test_period(uint32_t seed) {
     period++;
   } while (lfsr != (seed & MASK));
   return period;
+}
+
+double chi_squared(uint32_t *frequencies) {
+	uint32_t accumulated_sum = 0;
+
+	for (uint32_t i = 0;i < N;i++) {
+		accumulated_sum += ((frequencies[i] - M) * (frequencies[i] - M));
+	}
+
+	return accumulated_sum / M;
 }
