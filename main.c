@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #define SEED 0x00cafeba
 #define MASK 0x00ffffff  // ensure 24-bit
-// #define N    (16*1024*1024)
-#define N    (1024)
+#define N    16
+#define M    (1024*1024)
 
 uint32_t generate(uint32_t lfsr);
 uint32_t asm_generate(uint32_t lfsr);
@@ -14,41 +15,38 @@ int test(uint32_t seed);
 int test_period(uint32_t seed);
 
 int main(void) {
-  /*
-  uint32_t *cgen = calloc(sizeof(uint32_t), N);
-  if (!cgen) {
-    printf("Error allocating memory (%d)\n", 1);
-    return 1;
-  }
-
-  uint32_t *asmgen = calloc(sizeof(uint32_t), N);
-  if (!asmgen) {
-    printf("Error allocating memory (%d)\n", 2);
-    return 2;
-  }
-  */
 
   int period = test(SEED);
   printf("Period=%d\n", period);
 
-  /*
-  printf("Generating (C)\n");
-  for (int i = 0; i < N; i++) {
-    printf("%d\r", i+1);
-    cgen[i] = generate(&lfsr);
+  uint32_t categories[N];
+  memset(categories, 0, sizeof(uint32_t) * N);
+  printf("C code\n");
+  uint32_t lfsr = SEED & MASK;
+  for (int i = 0; i < N*M; i++) {
+    uint32_t r = generate(lfsr);
+    categories[r/M]++;
+    lfsr = r;
   }
 
-  printf("\nGenerating (asm)\n");
-  lfsr = SEED;
   for (int i = 0; i < N; i++) {
-    printf("%d\r", i);
-    asmgen[i] = asm_generate(&lfsr);
+    printf("[%d,%d]: %d\n", i, i+1, categories[i]);
   }
 
-  free(cgen);
-  free(asmgen);
-  */
-    return 0;
+  memset(categories, 0, sizeof(uint32_t) * N);
+  printf("\nASM code\n");
+  lfsr = SEED & MASK;
+  for (int i = 0; i < N*M; i++) {
+    uint32_t r = asm_generate(lfsr);
+    categories[r/M]++;
+    lfsr = r;
+  }
+
+  for (int i = 0; i < N; i++) {
+    printf("[%d,%d]: %d\n", i, i+1, categories[i]);
+  }
+
+  return 0;
 }
 
 uint32_t generate(uint32_t lfsr) {
