@@ -24,11 +24,20 @@ int main(void) {
   memset(categories, 0, sizeof(uint32_t) * N);
   printf("C code\n");
   uint32_t lfsr = SEED & MASK;
+  
+  clock_t C_code;
+  C_code = clock();
+	
   for (int i = 0; i < N*M; i++) {
     uint32_t r = generate(lfsr);
     categories[r/M]++;
     lfsr = r;
   }
+  
+  C_code = clock() - C_code;
+  double time_taken_C = ((double)C_code)/CLOCKS_PER_SEC;
+
+  printf("Programa em C levou %f segundos para ser executado\n",time_taken_C);
 
   for (int i = 0; i < N; i++) {
     printf("[%d,%d]: %d\n", i, i+1, categories[i]);
@@ -37,12 +46,20 @@ int main(void) {
   memset(categories, 0, sizeof(uint32_t) * N);
   printf("\nASM code\n");
   lfsr = SEED & MASK;
+  
+  clock_t ASM_code;
+  ASM_code = clock();
+  
+	
   for (int i = 0; i < N*M; i++) {
     uint32_t r = asm_generate(lfsr);
     categories[r/M]++;
     lfsr = r;
   }
-
+  ASM_code = clock() - ASM_code;
+  double time_taken_ASM = ((double)ASM_code)/CLOCKS_PER_SEC;
+  printf("Programa ASM levou %f segundos para ser executado\n",time_taken_ASM);
+	
   for (int i = 0; i < N; i++) {
     printf("[%d,%d]: %d\n", i, i+1, categories[i]);
   }
