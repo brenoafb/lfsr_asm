@@ -9,16 +9,23 @@
 #define N    16
 #define M    (1024*1024)
 
+uint32_t cycle(uint32_t lfsr);
+extern uint32_t asm_cycle(uint32_t lfsr);
+
 uint32_t generate(uint32_t *lfsr);
-uint32_t asm_generate(uint32_t *lfsr);
+extern uint32_t asm_generate(uint32_t *lfsr);
+
 int test(uint32_t seed);
 int test_period(uint32_t seed);
-double chi_squared(uint32_t *frequencies);
+int test_asm_period(uint32_t seed);
+
+double chi_squared(uint32_t *frequencies, uint32_t n, uint32_t expected);
 
 int main(void) {
 
   int period = test_period(SEED);
   printf("Period=%d\n", period);
+
 
   uint32_t categories[N];
   memset(categories, 0, sizeof(uint32_t) * N);
@@ -38,10 +45,10 @@ int main(void) {
   for (int i = 0; i < N; i++) {
     printf("[%d,%d]: %d\n", i, i+1, categories[i]);
   }
-  printf("Chi Squared = %lf\n", chi_squared(categories));
+  printf("Chi Squared = %lf\n", chi_squared(categories, N, M));
 
   memset(categories, 0, sizeof(uint32_t) * N);
-  printf("C code\n");
+  printf("\nasm code\n");
   lfsr = SEED & MASK;
   clock_t asm_clock = clock();
   for (int i = 0; i < N*M; i++) {
@@ -57,10 +64,15 @@ int main(void) {
   for (int i = 0; i < N; i++) {
     printf("[%d,%d]: %d\n", i, i+1, categories[i]);
   }
-  printf("Chi Squared = %lf\n", chi_squared(categories));
+  printf("Chi Squared = %lf\n", chi_squared(categories, N, M));
 
 
   return 0;
+}
+
+uint32_t cycle(uint32_t lfsr) {
+  uint32_t bit = ((lfsr >> 0) ^ (lfsr >> 1) ^ (lfsr >> 3) ^ (lfsr >> 4)) & 0x1;
+  return (lfsr >> 1) | (bit << 23);
 }
 
 uint32_t generate(uint32_t *lfsr) {
@@ -76,15 +88,14 @@ uint32_t generate(uint32_t *lfsr) {
   return x;
 }
 
-/*
 int test(uint32_t seed) {
   uint32_t lfsr = seed & MASK;
   int period = 0;
   do {
-    uint32_t cgen = generate(&lfsr);
-    uint32_t asmgen = asm_generate(lfsr);
+    uint32_t cgen = cycle(lfsr);
+    uint32_t asmgen = asm_cycle(lfsr);
     if (cgen != asmgen) {
-      printf("\nError at i=%d; c=0x%x (%d), asm=0x%x (%d)\n", period, cgen, cgen, asmgen, asmgen);
+      printf("Error at i=%d; c=0x%x (%d), asm=0x%x (%d)\n", period, cgen, cgen, asmgen, asmgen);
       return period;
     } else {
       period++;
@@ -92,27 +103,36 @@ int test(uint32_t seed) {
     }
   } while (lfsr != (seed & MASK));
 
-  printf("\nPass\n");
+  printf("Pass\n");
   return period;
 }
-*/
 
 int test_period(uint32_t seed) {
   uint32_t lfsr = seed & MASK;
   int period = 0;
   do {
-    generate(&lfsr);
+    lfsr = cycle(lfsr);
     period++;
   } while (lfsr != (seed & MASK));
   return period;
 }
 
-double chi_squared(uint32_t *frequencies) {
+int test_asm_period(uint32_t seed) {
+  uint32_t lfsr = seed & MASK;
+  int period = 0;
+  do {
+    lfsr = asm_cycle(lfsr);
+    period++;
+  } while (lfsr != (seed & MASK));
+  return period;
+}
+
+double chi_squared(uint32_t *frequencies, uint32_t n, uint32_t expected) {
   uint32_t accumulated_sum = 0;
 
-  for (uint32_t i = 0;i < N;i++) {
-    accumulated_sum += ((frequencies[i] - M) * (frequencies[i] - M));
+  for (uint32_t i = 0; i < n; i++) {
+    accumulated_sum += ((frequencies[i] - expected) * (frequencies[i] - expected));
   }
 
-  return accumulated_sum / M;
+  return accumulated_sum / expected;
 }
