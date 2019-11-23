@@ -26,34 +26,23 @@ double chi_squared(uint32_t *frequencies, uint32_t k, uint32_t expected);
 double test_function(generator gen, uint32_t n, uint32_t k, uint32_t categories[],
 		     double *time, uint32_t *period);
 
+void test_routine(generator gen);
+
 void print_categories(uint32_t *categories, uint32_t k);
 
 int main(void) {
-
-  uint32_t categories[N];
-  uint32_t period = 0;
-  double time = 0;
-  double score = 0;
-
   printf("C cycle\n");
-  score = test_function(cycle, TOTAL, K, categories, &time, &period);
-  print_categories(categories, K);
-  printf("Chi Squared = %lf\n", score);
+  test_routine(cycle);
 
   printf("\nASM cycle\n");
-  score = test_function(asm_cycle, TOTAL, K, categories, &time, &period);
-  print_categories(categories, K);
-  printf("Chi Squared = %lf\n", score);
+  test_routine(asm_cycle);
 
   printf("\nC generate\n");
-  score = test_function(generate, TOTAL, K, categories, &time, &period);
-  print_categories(categories, K);
-  printf("Chi Squared = %lf\n", score);
+  test_routine(generate);
 
   printf("\nASM generate\n");
-  score = test_function(asm_generate, TOTAL, K, categories, &time, &period);
-  print_categories(categories, K);
-  printf("Chi Squared = %lf\n", score);
+  test_routine(asm_generate);
+
   return 0;
 }
 
@@ -91,7 +80,6 @@ int test_period(uint32_t seed, generator g1, generator g2) {
     }
   } while ((lfsr_1 != (seed & MASK)) && (lfsr_2 != (SEED & MASK)));
 
-  printf("Pass\n");
   return period;
 }
 
@@ -127,4 +115,17 @@ void print_categories(uint32_t *categories, uint32_t k) {
   for (uint32_t i = 0; i < k; i++) {
     printf("%d: %d\n", i, categories[i]);
   }
+}
+
+void test_routine(generator gen) {
+  uint32_t categories[N];
+  uint32_t period = 0;
+  double time = 0;
+  double score = 0;
+
+  score = test_function(gen, TOTAL, K, categories, &time, &period);
+  printf("Period = %u\n", period);
+  printf("Time = %lf\n", time);
+  print_categories(categories, K);
+  printf("Chi Squared = %lf\n", score);
 }
