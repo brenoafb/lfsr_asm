@@ -21,7 +21,9 @@
 	global asm_cycle
 	segment	.text
 asm_cycle:
-	mov	edx, [esp + 4]
+	mov	eax, [esp + 4]
+	push	eax
+	mov	edx, [eax]
 	xor	eax, eax		; clear out eax
 
 	xor	edi, edi		; bit
@@ -46,5 +48,7 @@ asm_cycle:
 	shl	edi, 23			 ; shift bit to msb
 	or	edx, edi		 ; set msb to bit
 
+	pop	ecx
+	mov	[ecx], edx
 	mov	eax, edx
 	ret
