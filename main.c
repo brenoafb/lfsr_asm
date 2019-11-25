@@ -13,9 +13,6 @@
 
 typedef uint32_t (*generator)(uint32_t *);
 
-uint32_t cycle(uint32_t *lfsr);
-extern uint32_t asm_cycle(uint32_t *lfsr);
-
 uint32_t generate(uint32_t *lfsr);
 extern uint32_t asm_generate(uint32_t *lfsr);
 
@@ -31,12 +28,6 @@ void test_routine(generator gen);
 void print_categories(uint32_t *categories, uint32_t k);
 
 int main(void) {
-  printf("C cycle\n");
-  test_routine(cycle);
-
-  printf("\nASM cycle\n");
-  test_routine(asm_cycle);
-
   printf("\nC generate\n");
   test_routine(generate);
 
@@ -44,12 +35,6 @@ int main(void) {
   test_routine(asm_generate);
 
   return 0;
-}
-
-uint32_t cycle(uint32_t *lfsr) {
-  uint32_t bit = ((*lfsr >> 0) ^ (*lfsr >> 1) ^ (*lfsr >> 3) ^ (*lfsr >> 4)) & 0x1;
-  *lfsr = (*lfsr >> 1) | (bit << 23);
-  return *lfsr;
 }
 
 uint32_t generate(uint32_t *lfsr) {
