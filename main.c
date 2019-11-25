@@ -16,8 +16,6 @@ typedef uint32_t (*generator)(uint32_t *);
 uint32_t cycle(uint32_t *lfsr);
 extern uint32_t asm_cycle(uint32_t *lfsr);
 
-uint32_t generate(uint32_t *lfsr);
-extern uint32_t asm_generate(uint32_t *lfsr);
 
 int test_period(uint32_t seed, generator g1, generator g2);
 
@@ -37,12 +35,6 @@ int main(void) {
   printf("\nASM cycle\n");
   test_routine(asm_cycle);
 
-  printf("\nC generate\n");
-  test_routine(generate);
-
-  printf("\nASM generate\n");
-  test_routine(asm_generate);
-
   return 0;
 }
 
@@ -50,19 +42,6 @@ uint32_t cycle(uint32_t *lfsr) {
   uint32_t bit = ((*lfsr >> 0) ^ (*lfsr >> 1) ^ (*lfsr >> 3) ^ (*lfsr >> 4)) & 0x1;
   *lfsr = (*lfsr >> 1) | (bit << 23);
   return *lfsr;
-}
-
-uint32_t generate(uint32_t *lfsr) {
-  uint32_t bit;
-  uint32_t x = 0;
-  for (int i = 0; i < 24; i++) {
-    x <<= 1;
-    /* polynomial: x^24 + x^23 + x^22 + x17 + 1 */
-    bit = ((*lfsr >> 0) ^ (*lfsr >> 1) ^ (*lfsr >> 3) ^ (*lfsr >> 4)) & 0x1;
-    x |= *lfsr & 0x1;
-    *lfsr = (*lfsr >> 1) | (bit << 23);
-  }
-  return x;
 }
 
 int test_period(uint32_t seed, generator g1, generator g2) {
@@ -129,3 +108,4 @@ void test_routine(generator gen) {
   print_categories(categories, K);
   printf("Chi Squared = %lf\n", score);
 }
+
