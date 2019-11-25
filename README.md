@@ -9,6 +9,6 @@ To compile and run the program:
 
 ```bash
 nasm -felf lfsr.asm
-gcc -m32 -o lfsr main.c lfsr.o
+gcc -m32 -o lfsr main.c lfsr.o asm_cycle.o
 ./lfsr
 ```
